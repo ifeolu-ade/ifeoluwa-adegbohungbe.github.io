@@ -1,0 +1,77 @@
+---
+title: "Final Proj 2"
+output: html_document
+date: "2023-12-06"
+---
+
+```{r}
+## SUMMARIZED DATA CLEANING FROM MILESTONE 1
+library("tidyverse")
+data <- read.csv("portugal_ads_proprieties.csv")
+
+newdata <- select(data, !(ProprietyType))  #extraneous column removed
+
+# Changing Data Format 
+nrow(filter(newdata, newdata$Rooms == "10 ou superior"))
+for (z in 1:nrow(newdata)) {
+  if (newdata$Rooms[z] == "10 ou superior")  {
+    newdata$Rooms[z] <- "10"
+  }
+  z = z + 1
+}
+
+# Creating new column
+newdata <- mutate(newdata, City = sapply(strsplit(data$Location, ", "), tail, 1))
+
+# Removing outliers that skew analyses
+newdata <- filter(newdata, Price < 100000000)
+newdata <- filter(newdata, Area < 1300000000)
+
+```
+
+```{r}
+## SUMMARIZED HYPOTHESIS TESTING FROM MILESTONE 2
+
+n = 2000 
+sample_one = numeric(n)
+for (i in 1:n) {
+  sample = sample(newdata$Price, size = n, replace = TRUE)
+  sample_one[i] = mean(sample)
+}
+
+hist(sample_one)
+
+n = 2000 
+sample_two = numeric(n)
+for (i in 1:n) {
+  sample = sample(newdata$Price, size = n, replace = TRUE)
+  sample_two[i] = mean(sample)
+}
+
+hist(sample_two)
+
+t.test(sample_one, sample_two, paired = FALSE, alternative = 'two.sided', conf.level = 0.99)
+
+t.test(newdata$Price, mu = 478550, paired = FALSE, alternative = 'two.sided', conf.level = 0.90)
+
+```
+
+```{r}
+#REPORT IDEAS
+cor.test(newdata$Price, newdata$Area) 
+
+library(pwr)
+#install.packages('esc')
+library(esc)
+
+esc_mean_sd(grp1m = mean(sample_one), grp2m = mean(sample_two), grp1sd = sd(sample_one), grp2sd = sd(sample_two), grp1n = length(sample_one), grp2n = length(sample_two))
+
+pwr.t.test(n = length(sample_one), d = 0.0409, sig.level = 0.1, alternative = "two.sided")
+
+pwr.t.test(n = 5000, d = 0.0409, sig.level = 0.1, alternative = "two.sided")
+```
+
+
+
+
+
